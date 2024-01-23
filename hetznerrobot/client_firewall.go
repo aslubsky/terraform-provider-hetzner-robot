@@ -15,6 +15,7 @@ type HetznerRobotFirewallResponse struct {
 
 type HetznerRobotFirewall struct {
 	IP                       string                    `json:"server_ip"`
+	Id                       int                       `json:"server_number"`
 	WhitelistHetznerServices bool                      `json:"whitelist_hos"`
 	Status                   string                    `json:"status"`
 	Rules                    HetznerRobotFirewallRules `json:"rules"`
@@ -35,9 +36,9 @@ type HetznerRobotFirewallRule struct {
 	Action   string `json:"action"`
 }
 
-func (c *HetznerRobotClient) getFirewall(ctx context.Context, ip string) (*HetznerRobotFirewall, error) {
+func (c *HetznerRobotClient) getFirewall(ctx context.Context, id int) (*HetznerRobotFirewall, error) {
 
-	bytes, err := c.makeAPICall(ctx, "GET", fmt.Sprintf("%s/firewall/%s", c.url, ip), nil)
+	bytes, err := c.makeAPICall(ctx, "GET", fmt.Sprintf("%s/firewall/%d", c.url, id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +61,10 @@ func (c *HetznerRobotClient) setFirewall(ctx context.Context, firewall HetznerRo
 	formParams.Set("whitelist_hos", whitelistHOS)
 	formParams.Set("status", firewall.Status)
 
+    formParams.Set("rules[output][0][ip_version]", "ipv4")
+    formParams.Set("rules[output][0][name]", "Allow all (out)")
+    formParams.Set("rules[output][0][action]", "accept")
+
 	for idx, rule := range firewall.Rules.Input {
 		formParams.Set(fmt.Sprintf("rules[input][%d][%s]", idx, "ip_version"), "ipv4")
 		formParams.Set(fmt.Sprintf("rules[input][%d][%s]", idx, "name"), rule.Name)
@@ -79,7 +84,7 @@ func (c *HetznerRobotClient) setFirewall(ctx context.Context, firewall HetznerRo
 	encodedParams := formParams.Encode()
 	log.Println(encodedParams)
 
-	_, err := c.makeAPICall(ctx, "POST", fmt.Sprintf("%s/firewall/%s", c.url, firewall.IP), strings.NewReader(encodedParams))
+	_, err := c.makeAPICall(ctx, "POST", fmt.Sprintf("%s/firewall/%d", c.url, firewall.Id), strings.NewReader(encodedParams))
 	if err != nil {
 		return err
 	}

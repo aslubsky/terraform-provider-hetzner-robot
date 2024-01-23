@@ -18,6 +18,10 @@ func resourceFirewall() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"server_number": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
 			"active": {
 				Type:     schema.TypeBool,
 				Required: true,
@@ -74,6 +78,7 @@ func resourceFirewallCreate(ctx context.Context, d *schema.ResourceData, m inter
 	c := m.(HetznerRobotClient)
 
 	serverIP := d.Get("server_ip").(string)
+	serverId := d.Get("server_number").(int)
 
 	status := "disabled"
 	if d.Get("active").(bool) {
@@ -97,6 +102,7 @@ func resourceFirewallCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	if err := c.setFirewall(ctx, HetznerRobotFirewall{
 		IP:                       serverIP,
+		Id:                       serverId,
 		WhitelistHetznerServices: d.Get("whitelist_hos").(bool),
 		Status:                   status,
 		Rules:                    HetznerRobotFirewallRules{Input: rules},
@@ -115,9 +121,9 @@ func resourceFirewallCreate(ctx context.Context, d *schema.ResourceData, m inter
 func resourceFirewallRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(HetznerRobotClient)
 
-	serverIP := d.Id()
+	serverId := d.Get("server_number").(int)
 
-	_, err := c.getFirewall(ctx, serverIP)
+	_, err := c.getFirewall(ctx, serverId)
 	if err != nil {
 		return diag.FromErr(err)
 	}

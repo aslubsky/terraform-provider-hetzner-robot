@@ -1,4 +1,4 @@
-module github.com/strng-solutions/terraform-provider-hetzner-robot
+module github.com/aslubsky/terraform-provider-hetzner-robot
 
 go 1.21
 

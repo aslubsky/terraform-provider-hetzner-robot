@@ -2,7 +2,7 @@ terraform {
   required_providers {
     hetzner-robot = {
       version = "0.1.0"
-      source  = "strng-solutions/hetzner-robot"
+      source  = "aslubsky/hetzner-robot"
     }
   }
 
